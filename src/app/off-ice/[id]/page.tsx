@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Clock,
   Dumbbell,
+  Edit3,
   Image as ImageIcon,
   Tag,
   Wrench,
@@ -53,19 +54,27 @@ export default async function OffIceDetailPage({
     >
       <Navbar user={session.user} authMode={settings.authMode} />
 
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <main className="mx-auto max-w-4xl px-3 py-4 sm:px-6 sm:py-8 space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between gap-2">
           <Link
             href="/off-ice"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Off-Ice Practices
+            <span className="sm:hidden">Back</span>
+            <span className="hidden sm:inline">Back to Off-Ice Practices</span>
+          </Link>
+          <Link
+            href={`/off-ice?edit=${practice.id}`}
+            className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-sky-500 transition"
+          >
+            <Edit3 className="h-4 w-4" />
+            Edit Practice
           </Link>
         </div>
 
         <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 p-6 text-white">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 p-4 text-white sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-300">
                 <Dumbbell className="h-3.5 w-3.5" />
@@ -96,7 +105,7 @@ export default async function OffIceDetailPage({
             )}
           </div>
 
-          <div className="p-6 sm:p-8 space-y-8">
+          <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
             {practice.equipment.length > 0 && (
               <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-600">

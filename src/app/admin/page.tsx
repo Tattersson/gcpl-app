@@ -1628,7 +1628,7 @@ export default function AdminSettingsPage() {
               </div>
             </form>
 
-            <div className="mui-card-elevated overflow-hidden">
+            <div className="mui-card-elevated overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-slate-200 bg-slate-50 uppercase text-slate-500">
                   <tr>

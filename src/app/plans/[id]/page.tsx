@@ -207,29 +207,30 @@ export default function PracticePlannerWorkspacePage() {
           color: branding.headerTextColor || '#ffffff',
         }}
       >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-6 sm:py-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none sm:gap-3">
             <Link
               href="/dashboard"
-              className="flex items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs font-semibold hover:bg-white/20"
+              aria-label="Dashboard"
+              className="flex shrink-0 items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs font-semibold hover:bg-white/20"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <BrandLogo size="sm" />
               <input
                 type="text"
                 value={plan.title}
                 onChange={(e) => setPlan({ ...plan, title: e.target.value })}
-                className="rounded-lg border border-transparent bg-transparent px-2 py-0.5 text-base font-extrabold hover:border-white/25 focus:border-sky-500 focus:bg-black/25 focus:outline-none"
+                className="w-full min-w-0 rounded-lg border border-transparent bg-transparent px-2 py-0.5 text-base font-extrabold hover:border-white/25 focus:border-sky-500 focus:bg-black/25 focus:outline-none"
                 style={{ color: branding.headerTextColor || '#ffffff' }}
               />
             </div>
           </div>
 
           {/* Workspace Mode Switcher */}
-          <div className="flex items-center gap-1.5 rounded-xl bg-slate-800 p-1">
+          <div className="order-last flex w-full items-center gap-1.5 rounded-xl bg-slate-800 p-1 sm:order-none sm:w-auto [&>button]:flex-1 [&>button]:justify-center sm:[&>button]:flex-none">
             <button
               type="button"
               onClick={() => setActiveTab('editor')}
@@ -240,7 +241,7 @@ export default function PracticePlannerWorkspacePage() {
               }`}
             >
               <PenTool className="h-3.5 w-3.5" />
-              Drill & Animation Editor
+              <span className="hidden sm:inline">Drill &amp; Animation </span>Editor
             </button>
             <button
               type="button"
@@ -252,7 +253,7 @@ export default function PracticePlannerWorkspacePage() {
               }`}
             >
               <Layout className="h-3.5 w-3.5" />
-              Design the View
+              <span className="hidden sm:inline">Design the </span>View
             </button>
             <button
               type="button"
@@ -264,7 +265,7 @@ export default function PracticePlannerWorkspacePage() {
               }`}
             >
               <Share2 className="h-3.5 w-3.5" />
-              Share Plan
+              Share<span className="hidden sm:inline"> Plan</span>
             </button>
           </div>
 
@@ -287,7 +288,7 @@ export default function PracticePlannerWorkspacePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         {activeTab === 'editor' && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Left Sidebar: Practice Roster Appointment & Multi-Drill List */}

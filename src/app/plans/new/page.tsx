@@ -109,11 +109,11 @@ export default function NewPlanWizardPage() {
     >
       <div className="mx-auto max-w-4xl">
         {/* Wizard Header */}
-        <div className="mb-6 flex items-center justify-between text-white">
-          <div className="flex items-center gap-3">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 text-white">
+          <div className="flex min-w-0 items-center gap-3">
             <BrandLogo size="md" />
-            <div>
-              <h1 className="text-xl font-extrabold">
+            <div className="min-w-0">
+              <h1 className="text-lg font-extrabold sm:text-xl">
                 {branding.siteName} — Practice Plan Setup Wizard
               </h1>
               <p className="text-xs text-slate-300">
@@ -131,7 +131,7 @@ export default function NewPlanWizardPage() {
         </div>
 
         {/* Stepper Progress Indicator */}
-        <div className="mb-6 grid grid-cols-4 gap-2">
+        <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             { num: 1, label: '1. Session Basics' },
             { num: 2, label: '2. Rink Size & Section' },
@@ -156,7 +156,7 @@ export default function NewPlanWizardPage() {
         </div>
 
         {/* Wizard Card Body */}
-        <div className="mui-card-elevated border border-slate-700/30 p-6 shadow-2xl sm:p-8">
+        <div className="mui-card-elevated border border-slate-700/30 p-4 shadow-2xl sm:p-8">
           {error && (
             <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700">
               {error}
@@ -419,7 +419,7 @@ export default function NewPlanWizardPage() {
                 <label className="block text-xs font-bold text-slate-700">
                   Default Animation Run-Down Speed
                 </label>
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {([0.5, 1, 2] as PlaybackSpeed[]).map((spd) => (
                     <button
                       key={spd}

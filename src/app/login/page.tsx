@@ -91,7 +91,7 @@ function LoginContent() {
         background: `linear-gradient(135deg, ${branding.headerBgColor} 0%, ${branding.secondaryColor} 55%, ${branding.primaryColor} 100%)`,
       }}
     >
-      <div className="mui-card-elevated w-full max-w-md border border-slate-700/30 p-8 shadow-2xl">
+      <div className="mui-card-elevated w-full max-w-md border border-slate-700/30 p-5 shadow-2xl sm:p-8">
         <div className="flex items-center gap-3">
           <BrandLogo size="lg" />
           <div>

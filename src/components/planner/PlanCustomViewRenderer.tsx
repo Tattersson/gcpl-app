@@ -371,17 +371,17 @@ export default function PlanCustomViewRenderer({ plan }: PlanCustomViewRendererP
       {/* Focus Carousel Mode vs Grid/Split/Timeline Modes */}
       {viewConfig.layout === 'focus' && drills.length > 0 ? (
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm sm:px-4">
             <button
               type="button"
               disabled={focusDrillIndex === 0}
               onClick={() => setFocusDrillIndex((i) => Math.max(0, i - 1))}
-              className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 disabled:opacity-40"
+              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-700 disabled:opacity-40 sm:px-3"
             >
-              <ChevronLeft className="h-4 w-4" /> Previous Drill
+              <ChevronLeft className="h-4 w-4" /> Prev<span className="hidden sm:inline">ious Drill</span>
             </button>
             <span className="text-xs font-bold text-slate-700">
-              Showing Drill {focusDrillIndex + 1} of {drills.length}
+              <span className="hidden sm:inline">Showing </span>Drill {focusDrillIndex + 1} of {drills.length}
             </span>
             <button
               type="button"
@@ -389,9 +389,9 @@ export default function PlanCustomViewRenderer({ plan }: PlanCustomViewRendererP
               onClick={() =>
                 setFocusDrillIndex((i) => Math.min(drills.length - 1, i + 1))
               }
-              className="flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 disabled:opacity-40"
+              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-700 disabled:opacity-40 sm:px-3"
             >
-              Next Drill <ChevronRight className="h-4 w-4" />
+              Next<span className="hidden sm:inline"> Drill</span> <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 

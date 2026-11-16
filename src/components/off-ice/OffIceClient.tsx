@@ -402,7 +402,7 @@ export default function OffIceClient({
                   }
                 }}
                 placeholder="Add custom filter/tag (e.g., Plyometrics, Juggling, Post-Game Stretch)..."
-                className="min-w-0 flex-1 basis-48 rounded-xl border border-slate-300 px-3.5 py-2 text-base sm:py-1.5 sm:text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
+                className="min-w-0 flex-1 basis-48 rounded-xl border border-slate-300 px-3.5 py-1.5 text-xs text-slate-900 focus:border-sky-500 focus:outline-none"
               />
               <button
                 type="button"

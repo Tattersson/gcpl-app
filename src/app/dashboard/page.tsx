@@ -48,10 +48,10 @@ export default async function DashboardPage() {
     >
       <Navbar user={session.user} authMode={settings.authMode} />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
         {/* Hero / Quick Action Bar */}
         <div
-          className="flex flex-wrap items-center justify-between gap-4 p-6 text-white shadow-lg"
+          className="flex flex-wrap items-center justify-between gap-4 p-4 text-white shadow-lg sm:p-6"
           style={{
             background: `linear-gradient(135deg, ${branding.headerBgColor} 0%, ${branding.secondaryColor} 55%, ${branding.primaryColor} 100%)`,
             borderRadius: 'var(--brand-radius, 16px)',

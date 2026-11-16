@@ -1659,7 +1659,7 @@ export default function RinkCanvas({
 
       {/* SVG Ice Hockey Rink Surface */}
       <div className="relative overflow-hidden rounded-2xl border-2 border-slate-800 bg-gradient-to-b from-sky-50/70 via-white to-sky-50/70 shadow-inner">
-        <div className="pointer-events-none absolute left-3 top-2.5 z-10 flex items-center gap-2 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+        <div className="pointer-events-none absolute left-2 right-2 top-2 z-10 flex max-w-full flex-wrap items-center gap-1.5 rounded-xl bg-slate-900/80 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm sm:left-3 sm:right-auto sm:top-2.5 sm:gap-2 sm:rounded-full sm:px-3 sm:text-xs">
           <span>{preset.name}</span>
           <span className="text-sky-300">({preset.dimensionsLabel})</span>
           {zoom > 1 && (
@@ -1681,7 +1681,7 @@ export default function RinkCanvas({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          className={`w-full select-none touch-none ${
+          className={`w-full select-none touch-none min-h-[240px] max-h-[540px] sm:min-h-[340px] ${
             readOnly
               ? 'cursor-default'
               : toolMode === 'draw' || toolMode === 'place'
@@ -1690,7 +1690,6 @@ export default function RinkCanvas({
               ? 'cursor-grabbing'
               : 'cursor-grab'
           }`}
-          style={{ maxHeight: '540px', minHeight: '340px' }}
         >
           <defs>
             <marker

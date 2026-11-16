@@ -62,7 +62,7 @@ export default async function RootLayout({
   return (
     <html lang="en" style={cssVars as React.CSSProperties}>
       <body
-        className="min-h-screen text-slate-900 antialiased"
+        className="min-h-screen overflow-x-hidden text-slate-900 antialiased"
         style={{
           backgroundColor: 'var(--brand-bg, #f1f5f9)',
           fontFamily: 'var(--brand-font)',
