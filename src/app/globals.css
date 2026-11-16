@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #0284c7;
+  --brand-primary-contrast: #ffffff;
+  --brand-primary-50: #eff8fc;
+  --brand-primary-50-rgb: 239 248 252;
+  --brand-primary-100: #d7edf9;
+  --brand-primary-100-rgb: 215 237 249;
+  --brand-primary-200: #b0dbf2;
+  --brand-primary-200-rgb: 176 219 242;
+  --brand-primary-300: #7ec4e9;
+  --brand-primary-300-rgb: 126 196 233;
+  --brand-primary-400: #46a6db;
+  --brand-primary-400-rgb: 70 166 219;
+  --brand-primary-500: #1b91cd;
+  --brand-primary-500-rgb: 27 145 205;
+  --brand-primary-600: #0284c7;
+  --brand-primary-600-rgb: 2 132 199;
+  --brand-primary-700: #036fa8;
+  --brand-primary-700-rgb: 3 111 168;
+  --brand-primary-800: #055988;
+  --brand-primary-800-rgb: 5 89 136;
+  --brand-primary-900: #064468;
+  --brand-primary-900-rgb: 6 68 104;
+  --brand-primary-950: #082f48;
+  --brand-primary-950-rgb: 8 47 72;
+
+  --brand-secondary: #1e293b;
+  --brand-secondary-contrast: #ffffff;
+  --brand-secondary-50: #eef0f3;
+  --brand-secondary-50-rgb: 238 240 243;
+  --brand-secondary-100: #dbe0e5;
+  --brand-secondary-100-rgb: 219 224 229;
+  --brand-secondary-200: #b7c0cb;
+  --brand-secondary-200-rgb: 183 192 203;
+  --brand-secondary-300: #8a97a8;
+  --brand-secondary-300-rgb: 138 151 168;
+  --brand-secondary-400: #596980;
+  --brand-secondary-400-rgb: 89 105 128;
+  --brand-secondary-500: #334054;
+  --brand-secondary-500-rgb: 51 64 84;
+  --brand-secondary-600: #1e293b;
+  --brand-secondary-600-rgb: 30 41 59;
+  --brand-secondary-700: #1a2434;
+  --brand-secondary-700-rgb: 26 36 52;
+  --brand-secondary-800: #161f2d;
+  --brand-secondary-800-rgb: 22 31 45;
+  --brand-secondary-900: #121a27;
+  --brand-secondary-900-rgb: 18 26 39;
+  --brand-secondary-950: #0e1420;
+  --brand-secondary-950-rgb: 14 20 32;
+
+  --brand-accent: #0d9488;
+  --brand-accent-contrast: #ffffff;
+  --brand-accent-50: #ecf8f6;
+  --brand-accent-50-rgb: 236 248 246;
+  --brand-accent-100: #d8f0ee;
+  --brand-accent-100-rgb: 216 240 238;
+  --brand-accent-200: #b2e2dd;
+  --brand-accent-200-rgb: 178 226 221;
+  --brand-accent-300: #81cdc6;
+  --brand-accent-300-rgb: 129 205 198;
+  --brand-accent-400: #4bb2a8;
+  --brand-accent-400-rgb: 75 178 168;
+  --brand-accent-500: #229e93;
+  --brand-accent-500-rgb: 34 158 147;
+  --brand-accent-600: #0d9488;
+  --brand-accent-600-rgb: 13 148 136;
+  --brand-accent-700: #0c7c73;
+  --brand-accent-700-rgb: 12 124 115;
+  --brand-accent-800: #0b645e;
+  --brand-accent-800-rgb: 11 100 94;
+  --brand-accent-900: #0a4c49;
+  --brand-accent-900-rgb: 10 76 73;
+  --brand-accent-950: #093433;
+  --brand-accent-950-rgb: 9 52 51;
+
+  --brand-header-bg: #0f172a;
+  --brand-header-text: #ffffff;
+  --brand-bg: #f1f5f9;
+  --brand-surface: #ffffff;
+  --brand-radius: 12px;
+  --brand-font: "Roboto", "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--brand-bg, #f1f5f9);
+  color: #0f172a;
+  font-family: var(--brand-font);
+}
+
+/* Google Material Design 3 (MUI) Surface & Elevation System */
+@layer components {
+  .mui-card-elevated {
+    background-color: var(--brand-surface, #ffffff);
+    border-radius: var(--brand-radius, 12px);
+    box-shadow:
+      0px 1px 3px 1px rgba(15, 23, 42, 0.08),
+      0px 1px 2px 0px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mui-card-outlined {
+    background-color: var(--brand-surface, #ffffff);
+    border-radius: var(--brand-radius, 12px);
+    border: 1px solid #cbd5e1;
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mui-btn-contained {
+    background-color: var(--brand-primary, #0284c7);
+    color: var(--brand-primary-contrast, #ffffff);
+    border-radius: var(--brand-radius, 12px);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow:
+      0px 1px 2px 0px rgba(15, 23, 42, 0.2),
+      0px 1px 3px 1px rgba(15, 23, 42, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mui-btn-contained:hover:not(:disabled) {
+    filter: brightness(1.07);
+    box-shadow:
+      0px 2px 4px -1px rgba(15, 23, 42, 0.2),
+      0px 4px 5px 0px rgba(15, 23, 42, 0.14);
+  }
+
+  .mui-btn-tonal {
+    background-color: var(--brand-accent-100, #d8f0ee);
+    color: var(--brand-accent-900, #0a4c49);
+    border-radius: var(--brand-radius, 12px);
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mui-btn-tonal:hover:not(:disabled) {
+    background-color: var(--brand-accent-200, #b2e2dd);
+  }
+
+  .mui-btn-outlined {
+    background-color: transparent;
+    color: var(--brand-primary, #0284c7);
+    border: 1px solid var(--brand-primary-300, #7ec4e9);
+    border-radius: var(--brand-radius, 12px);
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mui-btn-outlined:hover:not(:disabled) {
+    background-color: var(--brand-primary-50, #eff8fc);
+  }
+}

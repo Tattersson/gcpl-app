@@ -1,0 +1,59 @@
+{
+  "realm": "gcpl",
+  "enabled": true,
+  "displayName": "Goalie Coach Practice Planner",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "GCPL Administrator"
+      },
+      {
+        "name": "COACH",
+        "description": "Goalie Coach"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "gcpl-web",
+      "name": "GCPL Next.js Application",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "gcpl-keycloak-secret",
+      "redirectUris": [
+        "http://localhost:3000/api/auth/callback/keycloak",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "headcoach",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Head",
+      "lastName": "GoalieCoach",
+      "email": "coach@gcpl.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "coach123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN", "COACH"]
+    }
+  ]
+}
