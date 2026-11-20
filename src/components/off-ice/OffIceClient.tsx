@@ -107,7 +107,7 @@ export default function OffIceClient({
   }
 
   useEffect(() => {
-    const target = editId && initialPractices.find((p) => p.id === editId);
+    const target = isAdmin && editId && initialPractices.find((p) => p.id === editId);
     if (target) openEditForm(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
@@ -269,18 +269,20 @@ export default function OffIceClient({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openCreateForm}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-sky-400 transition sm:w-auto sm:py-2.5"
-        >
-          <PlusCircle className="h-4 w-4" />
-          New Off-Ice Practice
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={openCreateForm}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-sky-400 transition sm:w-auto sm:py-2.5"
+          >
+            <PlusCircle className="h-4 w-4" />
+            New Off-Ice Practice
+          </button>
+        )}
       </div>
 
-      {/* Create / Edit Modal Card */}
-      {isFormOpen && (
+      {/* Create / Edit Modal Card (administrators only) */}
+      {isAdmin && isFormOpen && (
         <form
           onSubmit={handleSubmit}
           className="fixed inset-0 z-50 space-y-5 overflow-y-auto bg-white p-4 sm:static sm:z-auto sm:overflow-visible sm:rounded-2xl sm:border sm:border-sky-200 sm:p-6 sm:shadow-md"
@@ -683,14 +685,16 @@ export default function OffIceClient({
                     <BookOpen className="h-3.5 w-3.5" />
                     Read Practice
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => openEditForm(practice)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
-                  >
-                    <Edit3 className="h-3.5 w-3.5" />
-                    Edit
-                  </button>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => openEditForm(practice)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                      Edit
+                    </button>
+                  )}
                 </div>
 
                 {isAdmin && (

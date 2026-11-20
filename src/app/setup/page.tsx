@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { KeyRound, CheckCircle2, ArrowRight } from 'lucide-react';
 import { BrandLogo, useBranding } from '@/components/BrandingProvider';
@@ -8,6 +8,8 @@ import { BrandLogo, useBranding } from '@/components/BrandingProvider';
 export default function FirstRunSetupPage() {
   const router = useRouter();
   const { branding } = useBranding();
+  const [setupTokenRequired, setSetupTokenRequired] = useState(false);
+  const [setupToken, setSetupToken] = useState('');
   const [name, setName] = useState('Head Goalie Coach');
   const [email, setEmail] = useState('admin@gcpl.local');
   const [password, setPassword] = useState('');
@@ -19,6 +21,20 @@ export default function FirstRunSetupPage() {
   const [publicOrigin, setPublicOrigin] = useState('http://localhost:3000');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Once setup is locked this page has nothing to do: send people to sign-in.
+  useEffect(() => {
+    fetch('/api/auth/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.setupRequired) {
+          router.replace('/login');
+          return;
+        }
+        setSetupTokenRequired(Boolean(data.setupTokenRequired));
+      })
+      .catch(() => undefined);
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,6 +49,7 @@ export default function FirstRunSetupPage() {
           name,
           email,
           password,
+          setupToken,
           enableKeycloak,
           keycloakConfig: {
             issuerUrl,
@@ -130,6 +147,21 @@ export default function FirstRunSetupPage() {
               className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-900 focus:border-sky-600 focus:outline-none"
             />
           </div>
+
+          {setupTokenRequired && (
+            <div>
+              <label className="block text-xs font-bold text-slate-700">
+                Setup Token (from the SETUP_TOKEN server setting)
+              </label>
+              <input
+                type="password"
+                required
+                value={setupToken}
+                onChange={(e) => setSetupToken(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-900 focus:border-sky-600 focus:outline-none"
+              />
+            </div>
+          )}
 
           {/* Optional Direct Keycloak Configuration Toggle */}
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">

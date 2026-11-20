@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSystemSettings, updateSystemSettings } from '@/lib/db';
-import { getServerSession, resolveKeycloakEndpoints } from '@/lib/auth';
+import { getOptionalSession, requireAdmin, resolveKeycloakEndpoints } from '@/lib/auth';
 
 export async function GET() {
-  const session = await getServerSession();
+  const session = await getOptionalSession();
   const settings = await getSystemSettings();
 
   // Unauthenticated or non-admin callers receive public auth mode and instance branding (no Keycloak secrets)
-  if (!session || session.user.role !== 'ADMIN') {
+  if (session?.user.role !== 'ADMIN') {
     return NextResponse.json({
       authMode: settings.authMode,
       dbBackend: settings.dbBackend,
@@ -22,10 +22,8 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession();
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
 
   try {
     const body = await req.json();
@@ -62,10 +60,8 @@ export async function PUT(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   // Test Keycloak OIDC Discovery Connection before or after saving
-  const session = await getServerSession();
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
 
   try {
     const body = await req.json();

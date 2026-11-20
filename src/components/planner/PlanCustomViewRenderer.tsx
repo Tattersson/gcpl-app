@@ -27,7 +27,8 @@ import {
 } from 'lucide-react';
 
 interface PlanCustomViewRendererProps {
-  plan: PracticePlan;
+  // Public shape: this is a client component, so anything passed here is sent to the browser.
+  plan: Omit<PracticePlan, 'ownerId' | 'shareToken'>;
 }
 
 function DrillInteractiveCard({

@@ -68,6 +68,10 @@ INSERT INTO system_settings (id, auth_mode)
 VALUES (1, 'local')
 ON CONFLICT (id) DO NOTHING;
 
+-- One-time setup lock. Set exactly once by the first-run setup transaction and never cleared.
+-- Idempotent: init.sql runs on every cold start, so this must be safe to re-run.
+ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS setup_completed_at TIMESTAMPTZ;
+
 CREATE TABLE IF NOT EXISTS practice_plans (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID REFERENCES users(id) ON DELETE SET NULL,

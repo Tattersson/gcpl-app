@@ -1,11 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
+import { getOptionalSession } from '@/lib/auth';
 import {
   getOffIcePracticeById,
   getSystemSettings,
-  getUserCount,
+  isSetupComplete,
 } from '@/lib/db';
 import Navbar from '@/components/Navbar';
 import {
@@ -25,15 +25,12 @@ export default async function OffIceDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const userCount = await getUserCount();
-  if (userCount === 0) {
+  if (!(await isSetupComplete())) {
     redirect('/setup');
   }
 
-  const session = await getServerSession();
-  if (!session) {
-    redirect('/login');
-  }
+  const session = await getOptionalSession();
+  const isAdmin = session?.user.role === 'ADMIN';
 
   const { id } = await params;
   const [practice, settings] = await Promise.all([
@@ -52,7 +49,7 @@ export default async function OffIceDetailPage({
       className="min-h-screen"
       style={{ backgroundColor: branding.backgroundColor }}
     >
-      <Navbar user={session.user} authMode={settings.authMode} />
+      <Navbar user={session?.user ?? null} authMode={settings.authMode} />
 
       <main className="mx-auto max-w-4xl px-3 py-4 sm:px-6 sm:py-8 space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between gap-2">
@@ -64,13 +61,15 @@ export default async function OffIceDetailPage({
             <span className="sm:hidden">Back</span>
             <span className="hidden sm:inline">Back to Off-Ice Practices</span>
           </Link>
-          <Link
-            href={`/off-ice?edit=${practice.id}`}
-            className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-sky-500 transition"
-          >
-            <Edit3 className="h-4 w-4" />
-            Edit Practice
-          </Link>
+          {isAdmin && (
+            <Link
+              href={`/off-ice?edit=${practice.id}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-sky-500 transition"
+            >
+              <Edit3 className="h-4 w-4" />
+              Edit Practice
+            </Link>
+          )}
         </div>
 
         <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">

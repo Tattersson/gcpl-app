@@ -4,32 +4,30 @@ import {
   getOffIcePracticeById,
   updateOffIcePractice,
 } from '@/lib/db';
-import { getServerSession } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth';
 
+// Public read.
 export async function GET(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
   const { id } = await context.params;
   const practice = await getOffIcePracticeById(id);
   if (!practice) {
     return NextResponse.json({ error: 'Off-ice practice not found' }, { status: 404 });
   }
-  return NextResponse.json({ practice });
+  const { ownerId: _ownerId, ...publicPractice } = practice;
+  return NextResponse.json({ practice: publicPractice });
 }
 
+// Admin only.
 export async function PUT(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
+
   const { id } = await context.params;
   try {
     const body = await req.json();
@@ -38,25 +36,19 @@ export async function PUT(
       return NextResponse.json({ error: 'Off-ice practice not found' }, { status: 404 });
     }
     return NextResponse.json({ practice });
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: err?.message || 'Failed to update off-ice practice' },
-      { status: 400 }
-    );
+  } catch {
+    return NextResponse.json({ error: 'Failed to update off-ice practice' }, { status: 400 });
   }
 }
 
+// Admin only.
 export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  if (session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
+
   const { id } = await context.params;
   const deleted = await deleteOffIcePractice(id);
   return NextResponse.json({ deleted });

@@ -1,10 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
+import { getOptionalSession } from '@/lib/auth';
 import {
   getSystemSettings,
-   getUserCount,
+  isSetupComplete,
   listPracticePlans,
 } from '@/lib/db';
 import { RINK_PRESETS } from '@/lib/rinkConfig';
@@ -20,20 +20,19 @@ import {
   Layers,
   Settings,
   Dumbbell,
+  Eye,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const userCount = await getUserCount();
-  if (userCount === 0) {
+  if (!(await isSetupComplete())) {
     redirect('/setup');
   }
 
-  const session = await getServerSession();
-  if (!session) {
-    redirect('/login');
-  }
+  // The dashboard is public; the session only decides which controls are shown.
+  const session = await getOptionalSession();
+  const isAdmin = session?.user.role === 'ADMIN';
 
   const [plans, settings] = await Promise.all([
     listPracticePlans(),
@@ -46,7 +45,7 @@ export default async function DashboardPage() {
       className="min-h-screen"
       style={{ backgroundColor: branding.backgroundColor }}
     >
-      <Navbar user={session.user} authMode={settings.authMode} />
+      <Navbar user={session?.user ?? null} authMode={settings.authMode} />
 
       <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
         {/* Hero / Quick Action Bar */}
@@ -70,7 +69,7 @@ export default async function DashboardPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {session.user.role === 'ADMIN' && (
+            {isAdmin && (
               <Link
                 href="/admin"
                 className="flex items-center gap-2 rounded-xl border border-white/25 bg-black/25 px-4 py-2.5 text-xs font-bold text-white hover:bg-black/40 transition"
@@ -86,13 +85,15 @@ export default async function DashboardPage() {
               <Dumbbell className="h-4 w-4 text-sky-300" />
               Off-Ice Practices
             </Link>
-            <Link
-              href="/plans/new"
-              className="mui-btn-contained flex items-center gap-2 px-5 py-2.5 text-sm shadow-md"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Launch New Practice Wizard
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/plans/new"
+                className="mui-btn-contained flex items-center gap-2 px-5 py-2.5 text-sm shadow-md"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Launch New Practice Wizard
+              </Link>
+            )}
           </div>
         </div>
 
@@ -111,15 +112,19 @@ export default async function DashboardPage() {
                 No Practice Plans Yet
               </h3>
               <p className="mt-1 text-xs text-slate-500">
-                Use the Practice Setup Wizard to appoint your goalies & players, pick your rink size, and start drawing animated drills.
+                {isAdmin
+                  ? 'Use the Practice Setup Wizard to appoint your goalies & players, pick your rink size, and start drawing animated drills.'
+                  : 'Practice plans will appear here once a coach has created them.'}
               </p>
-              <Link
-                href="/plans/new"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-sky-500"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Create First Practice Plan
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/plans/new"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-sky-500"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Create First Practice Plan
+                </Link>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -191,21 +196,34 @@ export default async function DashboardPage() {
                     </div>
 
                     <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-5 py-3">
-                      <Link
-                        href={`/plans/${plan.id}`}
-                        className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-sky-500 transition"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" />
-                        Open Planner
-                      </Link>
+                      {isAdmin ? (
+                        <Link
+                          href={`/plans/${plan.id}/edit`}
+                          className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-sky-500 transition"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                          Open Planner
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/plans/${plan.id}`}
+                          className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-sky-500 transition"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View Plan
+                        </Link>
+                      )}
 
-                      <Link
-                        href={`/share/${plan.shareToken}`}
-                        className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
-                      >
-                        <Share2 className="h-3.5 w-3.5 text-sky-600" />
-                        Shared View
-                      </Link>
+                      {/* The share token is a per-plan secret, so only administrators see the link. */}
+                      {isAdmin && (
+                        <Link
+                          href={`/share/${plan.shareToken}`}
+                          className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                        >
+                          <Share2 className="h-3.5 w-3.5 text-sky-600" />
+                          Shared View
+                        </Link>
+                      )}
                     </div>
                   </div>
                 );

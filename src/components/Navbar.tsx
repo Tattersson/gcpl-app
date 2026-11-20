@@ -60,7 +60,8 @@ export default function Navbar({ user, authMode = 'local' }: NavbarProps) {
             </div>
           </Link>
 
-          {user && (
+          {/* Library links are public; only the admin-only items depend on the session. */}
+          {(
             <nav className="order-last -mx-1 flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap md:order-none md:mx-0 md:w-auto">
               <Link
                 href="/dashboard"
@@ -84,6 +85,7 @@ export default function Navbar({ user, authMode = 'local' }: NavbarProps) {
                 <Dumbbell className="h-4 w-4" />
                 Off-Ice Practices
               </Link>
+              {user?.role === 'ADMIN' && (
               <Link
                 href="/plans/new"
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
@@ -95,7 +97,8 @@ export default function Navbar({ user, authMode = 'local' }: NavbarProps) {
                 <PlusCircle className="h-4 w-4" />
                 New Plan Wizard
               </Link>
-              {user.role === 'ADMIN' && (
+              )}
+              {user?.role === 'ADMIN' && (
                 <Link
                   href="/admin"
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${

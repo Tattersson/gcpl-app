@@ -30,7 +30,8 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-gcpl}:${POSTGRES_PASSWORD:-gcpl_secret}@postgres:5432/${POSTGRES_DB:-gcpl_db}
-      AUTH_SECRET: ${AUTH_SECRET:-gcpl-super-secret-jwt-key-change-in-production}
+      # Required: signs session cookies. Generate with: openssl rand -base64 48
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in docker/.env (openssl rand -base64 48)}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     ports:
       - "${APP_PORT:-3000}:3000"

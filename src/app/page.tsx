@@ -1,19 +1,12 @@
 import { redirect } from 'next/navigation';
-import { getUserCount } from '@/lib/db';
-import { getServerSession } from '@/lib/auth';
+import { isSetupComplete } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const userCount = await getUserCount();
-  if (userCount === 0) {
+  // Fresh instance: run first-time setup. Otherwise the dashboard is public.
+  if (!(await isSetupComplete())) {
     redirect('/setup');
   }
-
-  const session = await getServerSession();
-  if (!session) {
-    redirect('/login');
-  }
-
   redirect('/dashboard');
 }

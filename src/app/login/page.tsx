@@ -22,9 +22,9 @@ function LoginContent() {
   useEffect(() => {
     async function checkState() {
       try {
-        const res = await fetch('/api/setup');
+        const res = await fetch('/api/auth/config');
         const data = await res.json();
-        if (data.needsSetup) {
+        if (data.setupRequired) {
           router.replace('/setup');
           return;
         }

@@ -1,9 +1,9 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
+import { getOptionalSession } from '@/lib/auth';
 import {
   getSystemSettings,
-  getUserCount,
+  isSetupComplete,
   listOffIcePractices,
 } from '@/lib/db';
 import Navbar from '@/components/Navbar';
@@ -17,15 +17,13 @@ export default async function OffIcePage({
   searchParams: Promise<{ edit?: string }>;
 }) {
   const { edit } = await searchParams;
-  const userCount = await getUserCount();
-  if (userCount === 0) {
+  if (!(await isSetupComplete())) {
     redirect('/setup');
   }
 
-  const session = await getServerSession();
-  if (!session) {
-    redirect('/login');
-  }
+  // Public page. Editing is only offered to administrators; the API enforces it regardless.
+  const session = await getOptionalSession();
+  const isAdmin = session?.user.role === 'ADMIN';
 
   const [practices, settings] = await Promise.all([
     listOffIcePractices(),
@@ -38,13 +36,14 @@ export default async function OffIcePage({
       className="min-h-screen"
       style={{ backgroundColor: branding.backgroundColor }}
     >
-      <Navbar user={session.user} authMode={settings.authMode} />
+      <Navbar user={session?.user ?? null} authMode={settings.authMode} />
 
       <main className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-8">
         <OffIceClient
-          initialPractices={practices}
-          isAdmin={session.user.role === 'ADMIN'}
-          editId={edit}
+          // Owner IDs are internal; the client only needs the practice content.
+          initialPractices={practices.map((p) => ({ ...p, ownerId: null }))}
+          isAdmin={isAdmin}
+          editId={isAdmin ? edit : undefined}
         />
       </main>
     </div>

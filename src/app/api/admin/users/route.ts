@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUser, listUsers, updateUserById } from '@/lib/db';
-import { getServerSession, hashPassword } from '@/lib/auth';
+import { hashPassword, requireAdmin } from '@/lib/auth';
 
 export async function GET() {
-  const session = await getServerSession();
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
   const users = await listUsers();
   return NextResponse.json({ users });
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession();
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
 
   try {
     const body = await req.json();
@@ -47,16 +43,30 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession();
-  if (!session || session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
 
   try {
     const body = await req.json();
     const { userId, role, active, name } = body;
     if (!userId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    }
+
+    // Never leave the instance without an active administrator.
+    const demotes = role !== undefined && role !== 'ADMIN';
+    const deactivates = active === false;
+    if (demotes || deactivates) {
+      const users = await listUsers();
+      const target = users.find((u) => u.id === userId);
+      const isActiveAdmin = (u: { role: string; active: boolean }) => u.role === 'ADMIN' && u.active;
+      const otherActiveAdmins = users.filter((u) => u.id !== userId && isActiveAdmin(u));
+      if (target && isActiveAdmin(target) && otherActiveAdmins.length === 0) {
+        return NextResponse.json(
+          { error: 'Cannot demote or deactivate the last active administrator.' },
+          { status: 400 }
+        );
+      }
     }
 
     const updated = await updateUserById(userId, { role, active, name });

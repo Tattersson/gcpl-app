@@ -4,6 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import {
   AppUser,
+  KeycloakConfig,
   OffIcePractice,
   PracticePlan,
   SystemSettings,
@@ -49,6 +50,8 @@ interface FallbackState {
   settings: SystemSettings;
   plans: PracticePlan[];
   offIcePractices: OffIcePractice[];
+  /** Set once by completeInitialSetup; never cleared. */
+  setupCompletedAt?: string | null;
 }
 
 const FALLBACK_FILE = path.join(process.cwd(), '.local-gcpl-store.json');
@@ -275,6 +278,139 @@ export async function getUserCount(): Promise<number> {
   return res.rows[0]?.count ?? 0;
 }
 
+/**
+ * True once first-time setup has run. Setup is considered done if the lock flag is set
+ * or any user exists (covers stores created before the flag existed).
+ */
+export async function isSetupComplete(): Promise<boolean> {
+  const { backend } = await ensureDatabaseReady();
+  if (backend === 'fallback') {
+    const state = readFallback();
+    return Boolean(state.setupCompletedAt) || state.users.length > 0;
+  }
+  const res = await getPool().query(
+    `SELECT (SELECT COUNT(*)::int FROM users) AS users,
+            (SELECT setup_completed_at FROM system_settings WHERE id = 1) AS completed_at`
+  );
+  const row = res.rows[0];
+  return Boolean(row?.completed_at) || (row?.users ?? 0) > 0;
+}
+
+/**
+ * Creates the first ADMIN and locks setup, in one atomic step.
+ * Returns null if setup was already completed (lost a race, or called again later).
+ *
+ * Postgres: the settings row is locked with SELECT ... FOR UPDATE, so concurrent
+ * requests serialise and only the first one commits.
+ * Fallback JSON store: the read-check-write is synchronous, so it cannot interleave.
+ */
+export async function completeInitialSetup(input: {
+  name: string;
+  email: string;
+  passwordHash: string;
+  authMode: 'local' | 'keycloak';
+  keycloakConfig: KeycloakConfig;
+}): Promise<AppUser | null> {
+  const email = input.email.trim().toLowerCase();
+  const name = input.name.trim();
+  const { backend } = await ensureDatabaseReady();
+  let created: AppUser | null = null;
+
+  if (backend === 'fallback') {
+    const state = readFallback();
+    if (state.setupCompletedAt || state.users.length > 0) return null;
+    const now = new Date().toISOString();
+    const newUser: StoredUser = {
+      id: crypto.randomUUID(),
+      email,
+      name,
+      passwordHash: input.passwordHash,
+      role: 'ADMIN',
+      authProvider: 'local',
+      keycloakSub: null,
+      active: true,
+      createdAt: now,
+    };
+    state.users.push(newUser);
+    state.settings = {
+      ...state.settings,
+      authMode: input.authMode,
+      keycloakConfig: input.keycloakConfig,
+      updatedAt: now,
+    };
+    state.setupCompletedAt = now;
+    writeFallback(state);
+    const { passwordHash: _ph, keycloakSub: _ks, ...publicUser } = newUser;
+    created = publicUser;
+  } else {
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `INSERT INTO system_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`
+      );
+      // Serialise concurrent setup attempts on the single settings row.
+      const lock = await client.query(
+        `SELECT setup_completed_at FROM system_settings WHERE id = 1 FOR UPDATE`
+      );
+      const countRes = await client.query(`SELECT COUNT(*)::int AS count FROM users`);
+      if (lock.rows[0]?.setup_completed_at || (countRes.rows[0]?.count ?? 0) > 0) {
+        await client.query('ROLLBACK');
+        return null;
+      }
+      const res = await client.query(
+        `INSERT INTO users (email, name, password_hash, role, auth_provider, keycloak_sub, active)
+         VALUES ($1, $2, $3, 'ADMIN', 'local', NULL, TRUE)
+         RETURNING id, email, name, role, auth_provider, active, created_at`,
+        [email, name, input.passwordHash]
+      );
+      await client.query(
+        `UPDATE system_settings
+         SET auth_mode = $1, keycloak_config = $2::jsonb,
+             setup_completed_at = NOW(), updated_at = NOW()
+         WHERE id = 1`,
+        [input.authMode, JSON.stringify(input.keycloakConfig)]
+      );
+      await client.query('COMMIT');
+      const r = res.rows[0];
+      created = {
+        id: r.id,
+        email: r.email,
+        name: r.name,
+        role: r.role,
+        authProvider: r.auth_provider,
+        active: r.active,
+        createdAt: new Date(r.created_at).toISOString(),
+      };
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Starter content is non-critical and runs after the lock is committed.
+  if (created && (await listPracticePlans()).length === 0) {
+    await createPracticePlan({
+      ownerId: created.id,
+      title: 'Pro Goalie Crease Mastery & Post Integration',
+      description: 'High-tempo morning goalie ice session focusing on T-pushes, RVH post seal, and royal-road pass tracking.',
+      practiceDate: new Date().toISOString().slice(0, 10),
+      durationMinutes: 60,
+      defaultRinkType: 'crease',
+      rosterConfig: {
+        goalies: 2,
+        skaters: 4,
+        coaches: 2,
+        goalieLabels: ['G1', 'G2'],
+        equipment: ['Pucks', 'Cones', 'Deflection Board'],
+      },
+    });
+  }
+  return created;
+}
+
 export async function listUsers(): Promise<AppUser[]> {
   const { backend } = await ensureDatabaseReady();
   if (backend === 'fallback') {
@@ -293,6 +429,33 @@ export async function listUsers(): Promise<AppUser[]> {
     active: r.active,
     createdAt: new Date(r.created_at).toISOString(),
   }));
+}
+
+/** Fresh role/active lookup, used to re-check admin rights on privileged requests. */
+export async function getUserById(id: string): Promise<AppUser | null> {
+  const { backend } = await ensureDatabaseReady();
+  if (backend === 'fallback') {
+    const u = readFallback().users.find((item) => item.id === id);
+    if (!u) return null;
+    const { passwordHash: _ph, keycloakSub: _ks, ...pub } = u;
+    return pub;
+  }
+  const res = await getPool().query(
+    `SELECT id, email, name, role, auth_provider, active, created_at
+     FROM users WHERE id = $1 LIMIT 1`,
+    [id]
+  );
+  if (res.rows.length === 0) return null;
+  const r = res.rows[0];
+  return {
+    id: r.id,
+    email: r.email,
+    name: r.name,
+    role: r.role as UserRole,
+    authProvider: r.auth_provider,
+    active: r.active,
+    createdAt: new Date(r.created_at).toISOString(),
+  };
 }
 
 export async function findUserByEmailWithSecret(email: string): Promise<StoredUser | null> {

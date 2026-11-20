@@ -26,3 +26,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local JSON fallback store (contains user records and password hashes)
+.local-gcpl-store.json

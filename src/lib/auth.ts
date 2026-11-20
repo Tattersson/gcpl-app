@@ -1,13 +1,25 @@
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 import { AppUser, KeycloakConfig } from '@/types/planner';
-import { getSystemSettings } from '@/lib/db';
+import { getSystemSettings, getUserById } from '@/lib/db';
 
 const SESSION_COOKIE = 'gcpl_session';
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.AUTH_SECRET || 'gcpl-super-secret-jwt-key-change-in-production'
-);
+const DEFAULT_SECRET = 'gcpl-super-secret-jwt-key-change-in-production';
+
+/**
+ * Resolves the JWT signing key. In production a real AUTH_SECRET is mandatory:
+ * the default value is public in this repo, so anyone could forge an ADMIN session.
+ * Throwing here makes sign/verify fail closed (no session) instead of trusting the default.
+ */
+function getSecretKey(): Uint8Array {
+  const secret = process.env.AUTH_SECRET;
+  if (process.env.NODE_ENV === 'production' && (!secret || secret === DEFAULT_SECRET)) {
+    throw new Error('AUTH_SECRET must be set to a non-default value in production.');
+  }
+  return new TextEncoder().encode(secret || DEFAULT_SECRET);
+}
 
 export interface SessionPayload {
   user: AppUser;
@@ -28,12 +40,12 @@ export async function createSessionToken(payload: SessionPayload): Promise<strin
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(SECRET_KEY);
+    .sign(getSecretKey());
 }
 
 export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET_KEY);
+    const { payload } = await jwtVerify(token, getSecretKey());
     if (!payload || typeof payload !== 'object' || !('user' in payload)) {
       return null;
     }
@@ -48,6 +60,32 @@ export async function getServerSession(): Promise<SessionPayload | null> {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);
+}
+
+/** Session for pages that are public but personalised; null when anonymous. */
+export async function getOptionalSession(): Promise<SessionPayload | null> {
+  return getServerSession();
+}
+
+export type AdminGuardResult =
+  | { ok: true; session: SessionPayload }
+  | { ok: false; response: NextResponse };
+
+/**
+ * Route-handler guard for admin-only writes.
+ * The JWT role is only a hint: the user is re-read from the DB so that a demoted
+ * or deactivated admin loses write access immediately, not after the 7-day token expires.
+ */
+export async function requireAdmin(): Promise<AdminGuardResult> {
+  const session = await getServerSession();
+  if (!session) {
+    return { ok: false, response: NextResponse.json({ error: 'Authentication required.' }, { status: 401 }) };
+  }
+  const current = await getUserById(session.user.id);
+  if (!current || !current.active || current.role !== 'ADMIN') {
+    return { ok: false, response: NextResponse.json({ error: 'Administrator access required.' }, { status: 403 }) };
+  }
+  return { ok: true, session };
 }
 
 export function getSessionCookieName(): string {
